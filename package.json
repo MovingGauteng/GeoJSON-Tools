@@ -1,6 +1,6 @@
 {
   "name": "geojson-tools",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Tools for working with location data, using the GeoJSON specification",
   "main": "index.js",
   "scripts": {
@@ -16,10 +16,13 @@
   "author": {
     "name": "Neville Dipale",
     "email": "nevilledips@gmail.com"
-    },
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/rwt-to/GeoJSON-Tools/issues"
   },
-  "homepage": "https://github.com/rwt-to/GeoJSON-Tools"
+  "homepage": "https://github.com/rwt-to/GeoJSON-Tools",
+  "dependencies": {
+    "underscore": "^1.6.0"
+  }
 }
