@@ -13,7 +13,6 @@ var _ = require('underscore');
  *
  * @param {Array} array
  * @param {String} type
- * @param {function} cb callback returned as cb(err, object)
  * @returns {object} GeoJSON object
  */
 var toGeoJSON = function (array, type) {
@@ -74,7 +73,6 @@ var toGeoJSON = function (array, type) {
 /**
  *
  * @param {type} geoobj GeoJSON object
- * @param {type} cb callback with (err, result) format
  * @returns {Array}
  */
 var toArray = function (geoobj) {
@@ -122,19 +120,18 @@ var toArray = function (geoobj) {
  * @param {Number} decimals number of decimals to return
  * @returns {Number}
  */
-var getDistance = function (array, dec) {
+var getDistance = function (array, decimals) {
   if(typeof(Number.prototype.toRad) === "undefined") {
       Number.prototype.toRad = function () {
       return this * Math.PI / 180;
     };
   }
 
-  // a high precision is required, else the results for arrays of distances will be incorrect by magnitudes
-  var decimals = 32;
-  var earthRadius = 6378.137; // km
-
-  var distance = 0;
-  for (var i = 0; (i + 1) < array.length; i++) {
+  decimals = decimals || 3;
+  var earthRadius = 6378.137, // km
+  	distance = 0,
+  	len = array.length;
+  for (var i = 0; (i + 1) < len; i++) {
     var x1 = array[i];
     var x2 = array[i + 1];
 
@@ -152,10 +149,9 @@ var getDistance = function (array, dec) {
       Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
     var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     var d = earthRadius * c;
-    var dist = Math.round(d * Math.pow(10, decimals)) / Math.pow(10, decimals);
-    distance += dist;
+    distance += d;
   }
-  distance = Math.round(distance * Math.pow(10, dec)) / Math.pow(10, dec);
+  distance = Math.round(distance * Math.pow(10, decimals)) / Math.pow(10, decimals);
   return distance;
 };
 
