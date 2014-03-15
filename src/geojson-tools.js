@@ -99,7 +99,7 @@ var toArray = function (geoobj) {
       return line;
     break;
     case 'polygon':
-      var array = geoobj.coordinates[0];
+      var array = geoobj.coordinates[0][0];
       var poly = [];
       if (array[0].toString() !== _.last(array).toString()) {
         return new Error("The first and last coordinates of a Polygon are not the same");
