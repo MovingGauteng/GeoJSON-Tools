@@ -99,7 +99,10 @@ var toArray = function (geoobj) {
       return line;
     break;
     case 'polygon':
-      var array = geoobj.coordinates[0][0];
+      var array = geoobj.coordinates;
+      while (array.length === 1) {
+        array = array[0];
+      }
       var poly = [];
       if (array[0].toString() !== _.last(array).toString()) {
         return new Error("The first and last coordinates of a Polygon are not the same");
@@ -129,8 +132,8 @@ var getDistance = function (array, decimals) {
 
   decimals = decimals || 3;
   var earthRadius = 6378.137, // km
-  	distance = 0,
-  	len = array.length;
+    distance = 0,
+    len = array.length;
   for (var i = 0; (i + 1) < len; i++) {
     var x1 = array[i];
     var x2 = array[i + 1];
