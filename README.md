@@ -92,7 +92,8 @@ toGeoJSON(array, 'linestring');
 
 To convert to `GeoJSON::Polygon`
 
-_The minimum number of coordinates should be 3, and there is no need to add the last coordinate in the array.._
+_The minimum number of coordinates should be 4, and there is no need to add the last coordinate in the array.
+`Polygons` with holes are supported, however we currently do not test the validity of the holes._
 ```js
 var array = [
   [20, 30],
@@ -101,7 +102,7 @@ var array = [
 ];
 toGeoJSON(array, 'polygon');
 
-// {"type":"Polygon","coordinates":[[[[30,20],[29.5,20.5],[30.5,21],[30,20]]]]}
+// {"type":"Polygon","coordinates":[[[30,20],[29.5,20.5],[30.5,21],[30,20]]]}
 ```
 
 <a name="toArray" />
@@ -138,9 +139,9 @@ toArray(geoobj);
 
 To convert from `GeoJSON::Polygon`
 
-_The minimum number of coordinates should be 3, and there is no need to add the last coordinate in the array.._
+_The minimum number of coordinates should be 3, and there is no need to add the last coordinate in the array._
 ```js
-var geoobj = {"type":"Polygon","coordinates":[[[[30,20],[29.5,20.5],[30.5,21],[30,20]]]]};
+var geoobj = {"type":"Polygon","coordinates":[[[30,20],[29.5,20.5],[30.5,21],[30,20]]]};
 toArray(geoobj);
 
 // [[20,30],[20.5,29.5],[21,30.5]]
