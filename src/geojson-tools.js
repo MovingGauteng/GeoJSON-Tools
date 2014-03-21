@@ -49,7 +49,7 @@ var toGeoJSON = function (array, type) {
       return georesult;
     break;
     case 'polygon':
-      var arr = [[[]]];
+      var arr = [[]];
       if (array.length < 3) {
         return new Error("Expecting 'array' to have at length of at least 3 sets of coordinates.");
       }
@@ -57,7 +57,7 @@ var toGeoJSON = function (array, type) {
         array.push(array[0]);
       }
       _.each(array, function (a) {
-        arr[0][0].push([a[1], a[0]]);
+        arr[0].push([a[1], a[0]]);
       });
       georesult = {
         type: "Polygon",
@@ -99,16 +99,21 @@ var toArray = function (geoobj) {
       return line;
     break;
     case 'polygon':
-      var array = geoobj.coordinates;
-      while (array.length === 1) {
-        array = array[0];
+      var array = geoobj.coordinates[0];
+      if (!array.length) {
+        return new Error("the object specified is not a valid GeoJSON Polygon");
       }
       var poly = [];
-      if (array[0].toString() !== _.last(array).toString()) {
-        return new Error("The first and last coordinates of a Polygon are not the same");
-      }
-      _.each(_.initial(array), function (pl) {
-        poly.push([pl[1], pl[0]]);
+      _.each(array, function (a) {
+        if (a[0].toString() !== _.last(a).toString()) {
+          return new Error("The first and last coordinates of a Polygon are not the same");
+        }
+        if (a.length < 4) {
+          return new Error("A valid Polygon should have a minimum of 4 coordinates");
+        }
+        _.each(_.initial(a), function (pl) {
+          poly.push([pl[1], pl[0]]);
+        });
       });
       return poly;
     break;
