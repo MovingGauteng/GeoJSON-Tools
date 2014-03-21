@@ -1,3 +1,10 @@
+0.1.5 / 2014-03-21
+==================
+
+  * Fix `toGeoJSON()` parsing of `Polygon` geometry
+  * Add support for `Polygon`s geometries with holes in `toArray()`
+  * Update documentation for fixes above
+
 0.1.4 / 2014-03-18
 ==================
 
