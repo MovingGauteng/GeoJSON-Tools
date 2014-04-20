@@ -28,7 +28,7 @@ var toGeoJSON = function (array, type) {
       if (_array.length !== 2) {
         return new Error("expected a single set of coordinates in [lat, lng] format. \nReceived " + _a);
       }
-      var arr = [_array[1], _array[0]];
+      var arr = [parseFloat(_array[1]), parseFloat(_array[0])];
       georesult = {
         type: "Point",
         coordinates: arr
@@ -38,7 +38,7 @@ var toGeoJSON = function (array, type) {
     case 'linestring':
       var arr = [];
       _.each(array, function (a) {
-        arr.push([a[1], a[0]]);
+        arr.push([parseFloat(a[1]), parseFloat(a[0])]);
       });
       georesult = {
         type: "LineString",
@@ -57,7 +57,7 @@ var toGeoJSON = function (array, type) {
         array.push(array[0]);
       }
       _.each(array, function (a) {
-        arr[0].push([a[1], a[0]]);
+        arr[0].push([parseFloat(a[1]), parseFloat(a[0])]);
       });
       georesult = {
         type: "Polygon",
@@ -81,7 +81,7 @@ var toArray = function (geoobj) {
   }
   switch (geoobj.type.toLowerCase()) {
     case 'point':
-      var point = [geoobj.coordinates[1],geoobj.coordinates[0]];
+      var point = [parseFloat(geoobj.coordinates[1]), parseFloat(geoobj.coordinates[0])];
       return point;
     break;
     case 'linestring':
@@ -90,7 +90,7 @@ var toArray = function (geoobj) {
       var line = [];
       _.each(array, function (ln) {
         if (typeof ln === 'object') {
-          line.push([ln[1], ln[0]]);
+          line.push([parseFloat(ln[1]), parseFloat(ln[0])]);
         }
         else {
           return new Error("the object specified is not a valid GeoJSON LineString");
@@ -112,7 +112,7 @@ var toArray = function (geoobj) {
           return new Error("A valid Polygon should have a minimum of 4 coordinates");
         }
         _.each(_.initial(a), function (pl) {
-          poly.push([pl[1], pl[0]]);
+          poly.push([parseFloat(pl[1]), parseFloat(pl[0])]);
         });
       });
       return poly;
