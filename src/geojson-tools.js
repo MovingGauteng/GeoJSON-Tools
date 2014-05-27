@@ -70,7 +70,27 @@ var toGeoJSON = function (array, type) {
       coordinates: arr
     };
     break;
-  case 'multipoint':
+  case 'multilinestring':
+    arr = [];
+    var nested;
+    // validate multilinestring
+    _.each(array, function (a) {
+      if (a.length < 2 && !error) {
+        error = new Error("Expecting each LineString in MultiiLineString to have at least 2 points.");
+      } else {
+        nested = [];
+        _.each(a, function (_a) {
+          nested.push([parseFloat(_a[1]), parseFloat(_a[0])]);
+        });
+        arr.push(nested);
+      }
+    });
+    if (!error) {
+      georesult = {
+        type: "MultiLineString",
+        coordinates: arr
+      };
+    }
     break;
   default:
     error = new Error("type not recognised. Should be 'point', 'linestring', or 'polygon'");
