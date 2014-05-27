@@ -38,15 +38,19 @@ var toGeoJSON = function (array, type) {
     };
     break;
   case 'linestring':
+  case 'multipoint':
     arr = [];
     _.each(array, function (a) {
       arr.push([parseFloat(a[1]), parseFloat(a[0])]);
     });
+    if (type === 'linestring') {
+      type = 'LineString';
+    } else if (type === 'MultiPoint') {
+      type = 'MultiPoint';
+    }
     georesult = {
-      type: "LineString",
-      coordinates: _.uniq(arr, true, function (x) {
-        return JSON.stringify(x);
-      })
+      type: type,
+      coordinates: arr
     };
     break;
   case 'polygon':
