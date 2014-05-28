@@ -29,13 +29,13 @@ var toGeoJSON = function (array, type) {
     var _a = JSON.stringify(array) || {};
     if (_array.length !== 2) {
       error = new Error("expected a single set of coordinates in [lat, lng] format. \nReceived " + _a);
-      break;
+    } else {
+      arr = [parseFloat(_array[1]), parseFloat(_array[0])];
+      georesult = {
+        type: "Point",
+        coordinates: arr
+      };
     }
-    arr = [parseFloat(_array[1]), parseFloat(_array[0])];
-    georesult = {
-      type: "Point",
-      coordinates: arr
-    };
     break;
   case 'linestring':
   case 'multipoint':
@@ -57,37 +57,68 @@ var toGeoJSON = function (array, type) {
     arr = [[]];
     if (array.length < 3) {
       error = new Error("Expecting 'array' to have at length of at least 3 sets of coordinates.");
-      break;
+    } else {
+      if (array[0].toString() !== _.last(array).toString()) {
+        array.push(array[0]);
+      }
+      _.each(array, function (a) {
+        arr[0].push([parseFloat(a[1]), parseFloat(a[0])]);
+      });
+      georesult = {
+        type: "Polygon",
+        coordinates: arr
+      };
     }
-    if (array[0].toString() !== _.last(array).toString()) {
-      array.push(array[0]);
-    }
-    _.each(array, function (a) {
-      arr[0].push([parseFloat(a[1]), parseFloat(a[0])]);
-    });
-    georesult = {
-      type: "Polygon",
-      coordinates: arr
-    };
     break;
   case 'multilinestring':
     arr = [];
     var nested;
     // validate multilinestring
-    _.each(array, function (a) {
+    _.find(array, function (a) {
       if (a.length < 2 && !error) {
         error = new Error("Expecting each LineString in MultiiLineString to have at least 2 points.");
+        return true;
       } else {
         nested = [];
         _.each(a, function (_a) {
           nested.push([parseFloat(_a[1]), parseFloat(_a[0])]);
         });
         arr.push(nested);
+        return false;
       }
     });
     if (!error) {
       georesult = {
         type: "MultiLineString",
+        coordinates: arr
+      };
+    }
+    break;
+  case 'multipolygon':
+    arr = [];
+    var outer,
+      inner;
+    _.find(array, function (a) {
+      outer = [];
+      _.find(a, function (_a) {
+        inner = [];
+        if (_a.length < 3) {
+          error = new Error("Expecting each array in MultiPolygon to have at least 3 points.");
+          return true;
+        }
+        _.find(_a, function (__a) {
+          inner.push([parseFloat(__a[1]), parseFloat(__a[0])]);
+          return false;
+        });
+        outer.push(inner);
+        return false;
+      });
+      arr.push(outer);
+      return false;
+    });
+    if (!error) {
+      georesult = {
+        type: "MultiPolygon",
         coordinates: arr
       };
     }
@@ -120,37 +151,41 @@ var toArray = function (geoobj) {
     // check if it is a valid line
     array = geoobj.coordinates;
     var line = [];
-    _.each(array, function (ln) {
+    _.find(array, function (ln) {
       if (typeof ln === 'object') {
         line.push([parseFloat(ln[1]), parseFloat(ln[0])]);
-      } else {
-        error = new Error("the object specified is not a valid GeoJSON LineString");
+        return false;
       }
+      error = new Error("the object specified is not a valid GeoJSON LineString");
+      return true;
     });
-    array = line;
+    if (!error) {
+      array = line;
+    }
     break;
   case 'polygon':
     array = geoobj.coordinates[0];
     if (!array.length) {
       error = new Error("the object specified is not a valid GeoJSON Polygon");
-      break;
-    }
-    var poly = [];
-    _.each(array, function (a) {
-      if (a[0].toString() !== _.last(a).toString()) {
-        error = new Error("The first and last coordinates of a Polygon are not the same");
-        break;
-      }
-      if (a.length < 4) {
-        error = new Error("A valid Polygon should have a minimum of 4 coordinates");
-        break;
-      }
-      _.each(_.initial(a), function (pl) {
-        poly.push([parseFloat(pl[1]), parseFloat(pl[0])]);
+    } else {
+      var poly = [];
+      _.find(array, function (a) {
+        if (a[0].toString() !== _.last(a).toString()) {
+          error = new Error("The first and last coordinates of a Polygon are not the same");
+          return true;
+        }
+        if (a.length < 4) {
+          error = new Error("A valid Polygon should have a minimum of 4 coordinates");
+          return true;
+        }
+        _.each(_.initial(a), function (pl) {
+          poly.push([parseFloat(pl[1]), parseFloat(pl[0])]);
+        });
+        return false;
       });
-    });
-    if (!error) {
-      array = poly;
+      if (!error) {
+        array = poly;
+      }
     }
     break;
   default:
