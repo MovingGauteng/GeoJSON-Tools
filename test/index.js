@@ -25,12 +25,6 @@ describe('GeoJSON', function () {
         expect(result).to.have.a.property('type', 'Point');
         expect(result).to.deep.equal({"type":"Point","coordinates":[25.35,-20.225]});
       });
-      it("should return an error on invalid coordinates", function () {
-        var pt = {"not": "valid"};
-        var result = geojson.toGeoJSON(pt);
-
-        expect(result).to.throw(Error("expected a single set of coordinates in [lat, lng] format. \nReceived " + pt));
-      });
     });
   });
 });
