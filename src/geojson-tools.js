@@ -164,29 +164,34 @@ var toArray = function (geoobj) {
     }
     break;
   case 'polygon':
-    array = geoobj.coordinates[0];
-    if (!array.length) {
-      error = new Error("the object specified is not a valid GeoJSON Polygon");
-    } else {
-      var poly = [];
-      _.find(array, function (a) {
-        if (a[0].toString() !== _.last(a).toString()) {
-          error = new Error("The first and last coordinates of a Polygon are not the same");
-          return true;
-        }
-        if (a.length < 4) {
-          error = new Error("A valid Polygon should have a minimum of 4 coordinates");
-          return true;
-        }
-        _.each(_.initial(a), function (pl) {
-          poly.push([parseFloat(pl[1]), parseFloat(pl[0])]);
-        });
-        return false;
+    var poly,
+      array = [];
+    // check if valid object
+    _.find(geoobj.coordinates, function (a) {
+      if (!a.length) {
+        error = new Error("the object specified is not a valid GeoJSON Polygon");
+        return true;
+      }
+      poly = [];
+      if (a[0].toString() !== _.last(a).toString()) {
+        error = new Error("The first and last coordinates of the Polygon are not the same");
+        return true;
+      }
+      if (a.length < 4) {
+        error = new Error("A valid Polygon should have a minimum of 4 coordinates");
+        return true;
+      }
+      _.each(_.initial(a), function (pl) {
+        poly.push([parseFloat(pl[1]), parseFloat(pl[0])]);
       });
+      array.push(poly);
+      return false;
       if (!error) {
         array = poly;
       }
-    }
+      return false;
+    });
+
     break;
   default:
     error = new Error("unknown GeoJSON type specified");
