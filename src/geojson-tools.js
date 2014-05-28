@@ -18,7 +18,8 @@ var _ = require('underscore');
 var toGeoJSON = function (array, type) {
   var georesult = {},
     arr,
-    error;
+    error,
+    nested;
   if (!type) {
     type = "point";
   }
@@ -54,16 +55,26 @@ var toGeoJSON = function (array, type) {
     };
     break;
   case 'polygon':
-    arr = [[]];
-    if (array.length < 3) {
-      error = new Error("Expecting 'array' to have at length of at least 3 sets of coordinates.");
-    } else {
-      if (array[0].toString() !== _.last(array).toString()) {
-        array.push(array[0]);
+    if (_.isArray(array) && _.isArray(array[0]) && !_.isArray(array[0][0])) {
+      array = [array];
+    }
+    arr = [];
+    _.find(array, function (_array) {
+      if (_array.length < 3) {
+        error = new Error("Expecting 'array' to have at length of at least 3 sets of coordinates.");
+        return true;
       }
-      _.each(array, function (a) {
-        arr[0].push([parseFloat(a[1]), parseFloat(a[0])]);
+      if (_array.toString() !== _.last(_array).toString()) {
+        _array.push(_array[0]);
+      }
+      nested = [];
+      _.each(_array, function (a) {
+        nested.push([parseFloat(a[1]), parseFloat(a[0])]);
       });
+      arr.push(nested);
+      return false;
+    });
+    if (!error) {
       georesult = {
         type: "Polygon",
         coordinates: arr
@@ -72,20 +83,18 @@ var toGeoJSON = function (array, type) {
     break;
   case 'multilinestring':
     arr = [];
-    var nested;
     // validate multilinestring
     _.find(array, function (a) {
       if (a.length < 2 && !error) {
         error = new Error("Expecting each LineString in MultiiLineString to have at least 2 points.");
         return true;
-      } else {
-        nested = [];
-        _.each(a, function (_a) {
-          nested.push([parseFloat(_a[1]), parseFloat(_a[0])]);
-        });
-        arr.push(nested);
-        return false;
       }
+      nested = [];
+      _.each(a, function (_a) {
+        nested.push([parseFloat(_a[1]), parseFloat(_a[0])]);
+      });
+      arr.push(nested);
+      return false;
     });
     if (!error) {
       georesult = {
@@ -164,8 +173,8 @@ var toArray = function (geoobj) {
     }
     break;
   case 'polygon':
-    var poly,
-      array = [];
+    var poly;
+    array = [];
     // check if valid object
     _.find(geoobj.coordinates, function (a) {
       if (!a.length) {
@@ -178,14 +187,13 @@ var toArray = function (geoobj) {
         return true;
       }
       if (a.length < 4) {
-        error = new Error("A valid Polygon should have a minimum of 4 coordinates");
+        error = new Error("A valid Polygon should have a minimum set of 4 points");
         return true;
       }
       _.each(_.initial(a), function (pl) {
         poly.push([parseFloat(pl[1]), parseFloat(pl[0])]);
       });
       array.push(poly);
-      return false;
       if (!error) {
         array = poly;
       }
