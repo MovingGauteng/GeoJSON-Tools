@@ -60,7 +60,7 @@ Convert `LineString` or array of coordinates to a 'complex' line with specified 
 __Argumenta""
 
 * linestring - a valid GeoJSON `LineString`, or an array of locations, in the format `[lat, lng]`.
-* distance - the maximum distance between each two locations, in meters.
+* distance - the maximum distance between each two locations, in meters. Minimum distance must be 10 meters.
 
 __Example__
 
