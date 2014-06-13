@@ -1,3 +1,9 @@
+0.1.6 / 2014-06-13
+==================
+
+  * Add support for making a `LineString` or array of coordinates complex by reducing the maximum distance between each points
+  * [WIP] Add support for some additional GeoJSON objects. This has not been tested, and has thus not yet been documented.
+
 0.1.5 / 2014-03-21
 ==================
 
