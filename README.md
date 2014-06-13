@@ -19,6 +19,7 @@ $ npm install geojson-tools
 ### Calculations
 
 * [getDistance](#getDistance)
+* [complexify](#complexify)
 
 ### Conversions
 
@@ -50,6 +51,189 @@ getDistance(array, 4);
 ```
 
 To get the distance between two points, pass two points in the array, to get the distance of a linestring, pass the coordinates of the linestring.
+
+<a name="complexify" />
+### complexify(linestring, distance)
+
+Convert `LineString` or array of coordinates to a 'complex' line with specified maximum distance between each set of points.
+
+__Argumenta""
+
+* linestring - a valid GeoJSON `LineString`, or an array of locations, in the format `[lat, lng]`.
+* distance - the maximum distance between each two locations, in meters.
+
+__Example__
+
+```js
+var array = [
+    [20, 30],
+  [20.5, 29.5]
+];
+complexify(array, .5); // 500 meters
+
+/*
+[
+  [
+    20,
+    30
+  ],
+  [
+    20.01374457881841,
+    29.98625542118159
+  ],
+  [
+    20.02749358953798,
+    29.97250641046202
+  ],
+  [
+    20.04124228409795,
+    29.95875771590205
+  ],
+  [
+    20.054991756377518,
+    29.945008243622482
+  ],
+  [
+    20.068742346786582,
+    29.931257653213418
+  ],
+  [
+    20.082493595207826,
+    29.917506404792174
+  ],
+  [
+    20.09624419012715,
+    29.90375580987285
+  ],
+  [
+    20.109998454446686,
+    29.890001545553314
+  ],
+  [
+    20.1237529737179,
+    29.8762470262821
+  ],
+  [
+    20.13750307275061,
+    29.86249692724939
+  ],
+  [
+    20.151256033129513,
+    29.848743966870487
+  ],
+  [
+    20.165010879444292,
+    29.834989120555708
+  ],
+  [
+    20.17876504224938,
+    29.82123495775062
+  ],
+  [
+    20.192520769690717,
+    29.807479230309283
+  ],
+  [
+    20.206277898630216,
+    29.793722101369784
+  ],
+  [
+    20.22003390658687,
+    29.77996609341313
+  ],
+  [
+    20.233790231590877,
+    29.766209768409123
+  ],
+  [
+    20.247544863923423,
+    29.752455136076577
+  ],
+  [
+    20.261305062529242,
+    29.738694937470758
+  ],
+  [
+    20.275060711787024,
+    29.724939288212976
+  ],
+  [
+    20.288822447172574,
+    29.711177552827426
+  ],
+  [
+    20.3025819531983,
+    29.6974180468017
+  ],
+  [
+    20.3163428239271,
+    29.6836571760729
+  ],
+  [
+    20.330106243909288,
+    29.669893756090712
+  ],
+  [
+    20.34386828218919,
+    29.65613171781081
+  ],
+  [
+    20.357630509669633,
+    29.642369490330367
+  ],
+  [
+    20.37139577415928,
+    29.62860422584072
+  ],
+  [
+    20.385162033041937,
+    29.614837966958063
+  ],
+  [
+    20.398927945160654,
+    29.601072054839346
+  ],
+  [
+    20.412692053486403,
+    29.587307946513597
+  ],
+  [
+    20.426458446138625,
+    29.573541553861375
+  ],
+  [
+    20.4402208587639,
+    29.5597791412361
+  ],
+  [
+    20.45398897904669,
+    29.54601102095331
+  ],
+  [
+    20.467757803444808,
+    29.532242196555192
+  ],
+  [
+    20.481524285475142,
+    29.518475714524858
+  ],
+  [
+    20.49529252216346,
+    29.50470747783654
+  ],
+  [
+    20.5,
+    29.5
+  ]
+];
+*/
+
+distance of 'simple' linestring: 76.321 km
+distance of 'complex' linesting: 76.321 km
+```
+
+<b>Note:</b> The algorithms works relatively well, and will return results that are > 99.9% accurate over short distances. Specifying distances > 500 km might return undesireable results.
+We have also not added the option to specify precision, and precision is set at the default rounding of 3 decimals, this is to avoid infinite loops.
 
 ## Conversions
 
