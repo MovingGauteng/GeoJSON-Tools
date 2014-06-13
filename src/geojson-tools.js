@@ -272,7 +272,7 @@ var getDistance = function (array, decimals) {
  * @returns {Object} either a LineString or array of coordinates
  */
 var complexify = function (linestring, distance) {
-  if (!_.isNumber(distance) || distance < 0.10) {
+  if (!_.isNumber(distance) || distance < 0.01) {
     console.error(new Error('distance should be a number greater than 10 meters'));
     return null;
   }
