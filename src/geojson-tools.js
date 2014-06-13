@@ -263,9 +263,113 @@ var getDistance = function (array, decimals) {
   return distance;
 };
 
+/**
+ * takes a `LineString` or an array of coordinates, and returns one with more coordinates
+ + having the distance parameter as the maximum distance between each set of coordinates.
+ *
+ * @param {Object} either a valid LineString, or an array of coordinates
+ * @param {Number} maximum distance in meters between points
+ * @returns {Object} either a LineString or array of coordinates
+ */
+var complexify = function (linestring, distance) {
+  if (!_.isNumber(distance) || distance < 0.10) {
+    console.error(new Error('distance should be a number greater than 10 meters'));
+    return null;
+  }
+  var returnGeoJSON;
+  if (!_.isArray(linestring)) {
+    // check if it is a GeoJSON LineString and convert it
+    if (linestring.coordinates && _.isArray(linestring.coordinates) && linestring.type.toLowerCase() === 'linestring') {
+      returnGeoJSON = true;
+      linestring = toArray(linestring);
+    } else {
+      console.error(new Error('distance should be a number greater than 10 meters'));
+      return null;
+    }
+  }
+  var t, // threshold
+    cur,
+    prev, // temporary points
+    result = [],
+    points = [],
+    d;
+  cur = linestring.shift();
+  result.push(cur);
+  points.push(cur);
+  // variables used in the loop
+  var reasonable,
+    ratio,
+    _d,
+    totalDistance,
+    a,
+    b,
+    bearing,
+    c;
+  _.each(linestring, function (point) {
+    prev = cur;
+    cur = point;
+    d = getDistance([cur, prev]);
+    if (d > distance) {
+      t = 0;
+      reasonable = false;
+      // estimate where distance could be, then perform a binary search to find the best-fit coordinates
+      ratio = distance / d;
+      _d = distance;
+      totalDistance = 0;
+      while (!reasonable || (totalDistance + distance < d)) {
+        a = _.last(result);
+        b = cur;
+        bearing = [];
+        if (a[0] > b[0]) {
+          bearing.push(-1);
+        } else {
+          bearing.push(1);
+        }
+        if (a[1] > b[1]) {
+          bearing.push(-1);
+        } else {
+          bearing.push(1);
+        }
+        c = [(b[0] - a[0]) * ratio * bearing[0], (b[1] - a[1]) * ratio * bearing[1]];
+        // console.log(c);
+        if (bearing[0] > 0) {
+          c[0] = c[0] + a[0];
+        } else {
+          c[0] = a[0] - c[0];
+        }
+        if (bearing[1] > 0) {
+          c[1] = c[1] + a[1];
+        } else {
+          c[1] = a[1] - c[1];
+        }
+        bearing = [];
+        _d = getDistance([a, c]);
+        if (_d !== distance) {
+          t = (_d / distance); // goalseek threshold and search for next nearest point
+          ratio = ratio + (ratio * (1 - t));
+        } else {
+          totalDistance += distance;
+          reasonable = true;
+          result.push(c);
+        }
+      }
+      totalDistance = 0;
+      reasonable = false;
+      result.push(cur);
+    } else {
+      result.push(cur);
+    }
+  });
+  if (returnGeoJSON) {
+    return toGeoJSON(result, 'linestring');
+  }
+  return result;
+};
+
 /*
  * Export functions
  */
 exports.toGeoJSON = toGeoJSON;
 exports.toArray = toArray;
 exports.getDistance = getDistance;
+exports.complexify = complexify;
