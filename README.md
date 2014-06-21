@@ -57,7 +57,7 @@ To get the distance between two points, pass two points in the array, to get the
 
 Convert `LineString` or array of coordinates to a 'complex' line with specified maximum distance between each set of points.
 
-__Argumenta""
+__Arguments__
 
 * linestring - a valid GeoJSON `LineString`, or an array of locations, in the format `[lat, lng]`.
 * distance - the maximum distance between each two locations, in meters. Minimum distance must be 10 meters.
