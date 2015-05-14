@@ -217,11 +217,6 @@ var toArray = function (geoobj) {
  * @returns {Number}
  */
 var getDistance = function (array, decimals) {
-  if (Number.prototype.toRad === undefined) {
-    Number.prototype.toRad = function () {
-      return this * Math.PI / 180;
-    };
-  }
 
   decimals = decimals || 3;
   var earthRadius = 6378.137, // km
@@ -248,10 +243,10 @@ var getDistance = function (array, decimals) {
     lon1 = parseFloat(x1[1]);
     lon2 = parseFloat(x2[1]);
 
-    dLat = (lat2 - lat1).toRad();
-    dLon = (lon2 - lon1).toRad();
-    lat1 = lat1.toRad();
-    lat2 = lat2.toRad();
+    dLat = _toRadian(lat2 - lat1);
+    dLon = _toRadian(lon2 - lon1);
+    lat1 = _toRadian(lat1);
+    lat2 = _toRadian(lat2);
 
     a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
@@ -331,7 +326,6 @@ var complexify = function (linestring, distance) {
           bearing.push(1);
         }
         c = [(b[0] - a[0]) * ratio * bearing[0], (b[1] - a[1]) * ratio * bearing[1]];
-        // console.log(c);
         if (bearing[0] > 0) {
           c[0] = c[0] + a[0];
         } else {
@@ -366,6 +360,15 @@ var complexify = function (linestring, distance) {
   return result;
 };
 
+/**
+ * converts degrees to radians
+ *
+ * @param {Number} coordinates in degrees
+ * @returns {Number} coordinates in radians
+ */
+var _toRadian = function (degree) {
+  return decimal * Math.PI / 180;
+}
 /*
  * Export functions
  */
