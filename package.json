@@ -1,6 +1,6 @@
 {
   "name": "geojson-tools",
-  "version": "0.1.7",
+  "version": "0.2.0-pre",
   "description": "Tools for working with location data, using the GeoJSON specification",
   "main": "index.js",
   "scripts": {
@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/rwt-to/GeoJSON-Tools",
   "dependencies": {
-    "underscore": "^1.6.0"
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
     "mocha": "1.18.*",
