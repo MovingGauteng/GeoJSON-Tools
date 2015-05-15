@@ -361,6 +361,165 @@ var complexify = function (linestring, distance) {
 };
 
 /**
+ * takes an input of an object, and returns a `true` or `false`. Include a `Boolean`
+ + to return a validation message for invalid objects.
+ *
+ * @param {Object} either a valid LineString, or an array of coordinates
+ * @param {Boolean} Optional true/false to return error message on invalid object
+ * @returns {Boolean} either true, false, or an object if `returnError` is not falsy
+ */
+var isGeoJSON = function (obj, returnError) {
+  var validTypes = [
+    "Point",
+    "MultiPoint",
+    "LineString",
+    "MultiLineString",
+    "Polygon",
+    "MultiPolygon",
+    "Feature",
+    "FeatureCollection",
+    "GeometryCollection"
+  ];
+  var invalid;
+  var index = _.indexOf(validTypes, obj.type);
+  if (!obj.type || index < 0) {
+    return _returnError(false, returnError, {message: 'invalid GeoJSON type supplied'});
+  }
+  if (index < 6) {
+    if (!obj.coordinates || !_.isArray(obj.coordinates)) {
+      return _returnError(false, returnError, {message: 'invalid GeoJSON type supplied'});
+    }
+    if (obj.type === 'Point') {
+      // expect a single set of coordinates, or an array where the first 2 elements are numbers
+      return _isPosition(obj.coordinates, returnError);
+    }
+    if (obj.type === 'MultiPoint') {
+      if (obj.coordinates.length < 2) {
+        return _returnError(false, returnError, {message: 'expecting array with at least 2 elements for GeoJSON MultiPoint'});
+      }
+      invalid = _.find(obj.coordinates, function (xy) {
+        return !_isPosition(xy);
+      });
+      if (invalid) {
+        return _returnError(false, returnError, {message: 'one of the coordinates of the GeoJSON MultiPoint are invalid'});
+      }
+      // GeoJSON MultiPoint is valid
+      return true;
+    }
+    if (obj.type === 'LineString') {
+      if (obj.coordinates.length < 2) {
+        return _returnError(false, returnError, {message: 'expecting array with at least 2 elements for GeoJSON LineString'});
+      }
+
+      return _isLineString(obj.coordinates, returnError);
+    }
+    if (obj.type === 'MultiLineString') {
+      if (obj.coordinates.length < 2) {
+        return _returnError(false, returnError, {message: 'expecting array of multiple set of coordinates for GeoJSON MultiLineString'});
+      }
+      invalid = _.find(obj.coordinates, function (coordinates) {
+        return !_isLineString(coordinates, returnError);
+      });
+      if (invalid) {
+        return _returnError(false, returnError, {message: 'one of the coordinates of the GeoJSON MultiLineString are invalid'});
+      }
+      // GeoJSON MultiLineString is valid
+      return true;
+    }
+    if (obj.type === 'Polygon') {
+      return _isLinearRing(obj.coordinates, returnError);
+    }
+    if (obj.type === 'MultiPolygon') {
+      invalid = _.find(obj.coordinates, function (coordinates) {
+        return !_isLinearRing(coordinates, returnError);
+      });
+      if (invalid) {
+        return _returnError(false, returnError, {message: 'one of the coordinateof the GeoJSON MultiPolygon are invalid'});
+      }
+      // GeoJSON MultiPolygon is valid
+      return true;
+    }
+  }
+  if (index === 6) {
+    if (!obj.geometry) {
+      return _returnError(false, returnError, {message: 'expected GeoJSON Feature to have a geometry'});
+    }
+    if (!obj.properties) {
+      return _returnError(false, returnError, {message: 'expected GeoJSON Feature to have properties'});
+    }
+    // NOTE that we use recursion here, don't like the practise but we had to do it
+    // a feature can have an `id` but it is optional, we do not check it.
+    return isGeoJSON(obj.geometry, returnError);
+  }
+  if (index === 7) {
+    if (!obj.features) {
+      return _returnError(false, returnError, {message: "expected GeoJSON FeatureCollection to have features"});
+    }
+    if (!_.isArray(obj.features)) {
+      return _returnError(false, returnError, {message: "expected GeoJSON FeatureCollection's features to be an array"});
+    }
+    invalid = _.find(obj.features, function (feature) {
+      return !isGeoJSON(feature);
+    });
+    if (invalid) {
+      return _returnError(false, returnError, {message: "one of the GeoJSON FeatureCollection's features is invalid"});
+    }
+    return true;
+  }
+  if (index === 8) {
+    if (!obj.geometries) {
+      return _returnError(false, returnError, {message: "expected GeoJSON GeometryCollection to have geometries"});
+    }
+    if (!_.isArray(obj.geometries)) {
+      return _returnError(false, returnError, {message: 'expected GeoJSON GeometryCollection\'s geometries to be an array'});
+    }
+    var invalid = _.find(obj.geometries, function (geometry) {
+      return !isGeoJSON(geometry);
+    });
+    if (invalid) {
+      return _returnError(false, returnError, {message: 'one of the GeoJSON GeometryCollection\'s geometries is invalid'});
+    }
+    // GeoJSON GeometryCollection is valid
+    return true;
+  }
+};
+
+var _isLinearRing = function (arr, returnError) {
+  var invalid = _.find(arr, function (coordinates) {
+    if (coordinates.length < 4) {
+      return _returnError(false, returnError, {message: 'expecting coordinates of GeoJSON object to have at least 4 positions'});
+    }
+    if (!_.isEqual(_.last(coordinates), coordinates[0])) {
+      return _returnError(false, returnError, {message: 'the first and last positions of GeoJSON LinearRing are not the same'});
+    }
+    return _isPosition(coordinates);
+  });
+  if (invalid) {
+    return _returnError(false, returnError, {message: ''})
+  }
+  return true;
+};
+
+var _isPosition = function (coordinates, returnError) {
+  if (coordinates.length < 2 || !_.isNumber(coordinates[0]) || !_.isNumber(coordinates[1])) {
+    return _returnError(false, returnError, {message: 'invalid coordinates for GeoJSON Point'});
+  }
+  // Position is valid
+  return true;
+};
+
+var _isLineString = function (coordinates, returnError) {
+  var invalid = _.find(coordinates, function (xy) {
+    return !_isPosition(xy);
+  });
+  if (invalid) {
+    return _returnError(false, returnError, {message: 'one of the coordinates of the LineString are invalid'});
+  }
+  // GeoJSON LineString coordinates are valid
+  return true;
+};
+
+/**
  * converts degrees to radians
  *
  * @param {Number} coordinates in degrees
@@ -369,6 +528,28 @@ var complexify = function (linestring, distance) {
 var _toRadian = function (degree) {
   return decimal * Math.PI / 180;
 }
+
+/**
+ * returns an object with result, and error message if provided
+ *
+ * @param {Boolean} error, can also take any JavaScript object
+ * @param {Boolean} indicator of whether to return error message
+ * @param {Object} object containing error message
+ * @returns {Object} result and error message
+ */
+var _returnError = function (err, returnError, options) {
+  if (!returnError) {
+    return err;
+  }
+  if (!options) {
+    options = {};
+  }
+  if (options.message) {
+    return {result: err, message: options.message};
+  }
+  return {result: err};
+};
+
 /*
  * Export functions
  */
@@ -376,3 +557,4 @@ exports.toGeoJSON = toGeoJSON;
 exports.toArray = toArray;
 exports.getDistance = getDistance;
 exports.complexify = complexify;
+exports.isGeoJSON = isGeoJSON;

@@ -26,6 +26,10 @@ $ npm install geojson-tools
 * [toGeoJSON](#toGeoJSON)
 * [toArray](#toArray)
 
+### Validations
+
+* [isGeoJSON](#isGeoJSON)
+
 ## Calculations
 
 <a name="getDistance" />
@@ -245,11 +249,11 @@ Takes an input of an array and a `GeoJSON` type, and returns that `GeoJSON` obje
 __Arguments__
 
 * array - an array of locations, in the format `[lat, lng]`.
-* type - the type of `GeoJSON` object to return (note that this is not case-sensitive.
+* type - the type of `GeoJSON` object to return (note that this is not case-sensitive).
 The default type is 'Point', which is returned when pushing an array of a single set of coordinates.
 Other types are `LineString` and `Polygon`.
 
-<b>Note:</b> Other `GeoJSON` types will be supported in future versions. 
+<b>Note:</b> Other `GeoJSON` types will be supported in future versions.
 
 __Examples__
 
@@ -299,7 +303,7 @@ __Arguments__
 
 * geoobj - a valid `GeoJSON` object of the following types: `Point`, `LineString` or `Polygon`.
 
-**Note:** Other `GeoJSON` types will be supported in future versions. 
+**Note:** Other `GeoJSON` types will be supported in future versions.
 
 __Examples__
 
@@ -329,4 +333,56 @@ var geoobj = {"type":"Polygon","coordinates":[[[30,20],[29.5,20.5],[30.5,21],[30
 toArray(geoobj);
 
 // [[20,30],[20.5,29.5],[21,30.5]]
+```
+## Validations
+
+<a name="isGeoJSON" />
+### isGeoJSON(obj[, returnError])
+
+Takes an input of an object, and returns a `true` or `false`. Include a `Boolean` to return a validation message for invalid objects.
+
+__Arguments__
+
+* obj - an object, either valid or invalid `GeoJSON`.
+* returnError - a `Boolean` indicating whether to return a validation message if obj is invalid.
+The default `returnError` is `true`.
+
+**Note:** All `GeoJSON` types are supported in the `isGeoJSON` check. They are:
+
+* `Point`
+* `MultiPoint`
+* `LineString`
+* `MultiLineString`
+* `Polygon`
+* `MultiPolygon`
+* `Feature`
+* `FeatureCollection`
+* `GeometryCollection`
+
+Nested GeoJSON objects are validated as part of the supplied object.
+
+#### Caveats
+
+1. We currently do not check the order of `LinearRings` inside a `Polygon`
+2. All `coordinates` supplied are expected to be numbers, we do not `parseFloat`s
+3. Though the library expects users to be using WGS84, we do not check bounds of lat and lng
+
+__Examples__
+
+To validate a valid `GeoJSON::Point`
+
+```js
+var geoobj = {"type":"Point","coordinates":[30,20]};
+isGeoJSON(geoobj, true);
+
+// true
+```
+
+To validate an invalid `GeoJSON::LineString`
+```js
+var geoobj = {"type":"LineString","coordinate":[[30,20],[29.5,20.5]]};
+// note the 'coordinate', expecting 'coordinates'
+isGeoJSON(geoobj, true);
+
+// {result: false, message: "invalid GeoJSON type supplied"}
 ```
