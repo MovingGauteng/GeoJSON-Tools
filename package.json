@@ -4,7 +4,7 @@
   "description": "Tools for working with location data, using the GeoJSON specification",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -26,7 +26,7 @@
     "underscore": "^1.8.3"
   },
   "devDependencies": {
-    "mocha": "1.18.*",
-    "chai": "~1.9.1"
+    "mocha": "2.2.*",
+    "chai": "2.1.*"
   }
 }
