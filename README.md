@@ -301,9 +301,13 @@ A single set of coordinates for a `Point`, or an array for other types.
 
 __Arguments__
 
-* geoobj - a valid `GeoJSON` object of the following types: `Point`, `LineString` or `Polygon`.
+* geoobj - a valid `GeoJSON` object of the following types: `Point`, `LineString`, `Polygon`, `MultiPoint`, `MultiLineString` or `MultiPolygon`.
 
-**Note:** Other `GeoJSON` types will be supported in future versions.
+**Note:** The `Feature`, `FeatureCollection` and `GeometryCollection` objects are unsupported.
+The logic being that it would make it difficult to work with such deeply nested arrays, and that the primary `GeoJSON` objects
+would be mixed.
+
+To convert the above to arrays, rather convert the individual geometries in the feature etc.
 
 __Examples__
 
