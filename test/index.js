@@ -11,7 +11,7 @@ var expect = require('chai').expect,
 describe('GeoJSON', function () {
   describe('.toGeoJSON()', function () {
     describe('#Point', function () {
-      it("should convert a Point to a GeoJSON Point", function () {
+      it("should convert an array of lat,lng to a GeoJSON Point", function () {
         var pt = [-20.225, 25.35];
         var result = geojson.toGeoJSON(pt);
 
@@ -26,6 +26,89 @@ describe('GeoJSON', function () {
         expect(result).to.deep.equal({"type":"Point","coordinates":[25.35,-20.225]});
       });
     });
+    describe('#LineString', function () {
+      it("should convert an array of lat,lng coordinates to a GeoJSON LineString", function () {
+        var pts = [
+          [-20.225, 25.35],
+          [-20.234, 25.42]
+        ];
+        var result = geojson.toGeoJSON(pts, "LineString");
+
+        expect(result).to.have.a.property('type', 'LineString');
+        expect(result).to.deep.equal({"type": "LineString", "coordinates": [[25.35, -20.225], [25.42, -20.234]]});
+      });
+      it("should parse a nested string array to a GeoJSON LineString", function () {
+        var pts = [
+          ["-20.225", "25.35"],
+          ["-20.234", "25.42"]
+        ];
+        var result = geojson.toGeoJSON(pts, "LineString");
+
+        expect(result).to.have.a.property('type', 'LineString');
+        expect(result).to.deep.equal({"type": "LineString", "coordinates": [[25.35, -20.225], [25.42, -20.234]]});
+      });
+    });
+  });
+  // toArray
+  describe('.toArray()', function () {
+    var point, linestring, polygon, multipoint, multilinestring, multipolygon
+    it('should return correct array from GeoJSON Point with reversed coordinates', function () {
+      point = {"type": "Point", "coordinates": [-20.1, 28.5]};
+      result = geojson.toArray(point);
+      expect(result).to.eql([28.5, -20.1]);
+    });
+    // TODO test incorrect one
+    it('should return correct array from GeoJSON MultiPoint with reversed coordinates', function () {
+      multipoint = {"type": "MultiPoint", "coordinates": [[-20.1, 28.5], [-21.1, 28.3]]};
+      result = geojson.toArray(multipoint);
+      expect(result).to.eql([[28.5, -20.1], [28.3, -21.1]]);
+    });
+    // TODO test incorrect one
+    it('should return correct array from GeoJSON LineString with reversed coordinates', function () {
+      linestring = {"type": "LineString", "coordinates": [[-20.1, 28.5], [-21.1, 28.3]]};
+      result = geojson.toArray(linestring);
+      expect(result).to.eql([[28.5, -20.1], [28.3, -21.1]]);
+    });
+    // TODO test incorrect one
+    it('should return correct array from GeoJSON MultiLineString with reversed coordinates', function () {
+      multilinestring = {"type": "MultiLineString", "coordinates": [[[-20.1, 28.5], [-21.1, 28.3]], [[-21.1, 27.6], [-21.1, 28.3], [-26.6, 28.3]]]};
+      result = geojson.toArray(multilinestring);
+      expect(result).to.eql([[[28.5, -20.1], [28.3, -21.1]], [[27.6, -21.1], [28.3, -21.1], [28.3, -26.6]]]);
+    });
+    // TODO test incorrect one
+    it('should return correct array from GeoJSON Polygon with reversed coordinates', function () {
+      polygon = {"type": "Polygon", "coordinates": [
+        [ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
+          [100.0, 1.0], [100.0, 0.0]
+        ]
+      ]};
+      result = geojson.toArray(polygon);
+      expect(result).to.eql([[0.0, 100.0], [0.0, 101.0], [1.0, 101.0], [1.0, 100.0]]);
+    });
+    // TODO test incorrect one
+    it('should return correct array from GeoJSON MultiPolygon with reversed coordinates', function () {
+      multipolygon = {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [[[102.0, 2.0], [103.0, 2.0], [103.0, 3.0], [102.0, 3.0], [102.0, 2.0]]],
+          [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 0.0]],
+           [[100.2, 0.2], [100.8, 0.2], [100.8, 0.8], [100.2, 0.8], [100.2, 0.2]]]
+        ]
+      };
+      result = geojson.toArray(multipolygon);
+      expect(result).to.eql([
+        [
+          [2.0, 102.0], [2.0, 103.0], [3.0, 103.0], [3.0, 102.0]
+        ],
+        [
+          [0.0, 100.0], [0.0, 101.0], [1.0, 101.0]
+        ],
+        [
+          [0.2, 100.2], [0.2, 100.8], [0.8, 100.8], [0.8, 100.2]
+        ]
+      ]);
+    });
+  });
   // isGeoJSON
   describe('.isGeoJSON()', function () {
     it("should not return true for invalid GeoJSON types", function () {

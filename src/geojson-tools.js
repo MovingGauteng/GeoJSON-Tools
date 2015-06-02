@@ -46,7 +46,7 @@ var toGeoJSON = function (array, type) {
     });
     if (type === 'linestring') {
       type = 'LineString';
-    } else if (type === 'MultiPoint') {
+    } else if (type === 'multipoint') {
       type = 'MultiPoint';
     }
     georesult = {
@@ -86,7 +86,7 @@ var toGeoJSON = function (array, type) {
     // validate multilinestring
     _.find(array, function (a) {
       if (a.length < 2 && !error) {
-        error = new Error("Expecting each LineString in MultiiLineString to have at least 2 points.");
+        error = new Error("Expecting each LineString in MultiLineString to have at least 2 points.");
         return true;
       }
       nested = [];
@@ -133,7 +133,7 @@ var toGeoJSON = function (array, type) {
     }
     break;
   default:
-    error = new Error("type not recognised. Should be 'point', 'linestring', or 'polygon'");
+    error = new Error("type not recognised or supported");
   }
   if (error) {
     return error;
@@ -199,7 +199,58 @@ var toArray = function (geoobj) {
       }
       return false;
     });
-
+    break;
+  case 'multipoint':
+    var mpoint;
+    array = [];
+    // REVIEW should we check if valid object? Or can we do it at the top?
+    _.each(geoobj.coordinates, function (pt) {
+      array.push([parseFloat(pt[1]), parseFloat(pt[0])]);
+    });
+    break;
+  case 'multilinestring':
+    var multiline;
+    array = [];
+    // check if valid object
+    _.find(geoobj.coordinates, function (a) {
+      if (!a.length) {
+        error = new Error("the object specified is not a valid GeoJSON MultiLineString");
+        return true;
+      }
+      multiline = [];
+      _.each(a, function (pl) {
+        multiline.push([parseFloat(pl[1]), parseFloat(pl[0])]);
+      });
+      array.push(multiline);
+      return false;
+    });
+    break;
+  case 'multipolygon':
+    var poly;
+    array = [];
+    _.each(geoobj.coordinates, function (coord) {
+      _.find(coord, function (a) {
+        if (!a.length) {
+          error = new Error("the object specified is not a valid GeoJSON Polygon");
+          return true;
+        }
+        poly = [];
+        if (a[0].toString() !== _.last(a).toString()) {
+          error = new Error("The first and last coordinates of the Polygon are not the same");
+          return true;
+        }
+        if (a.length < 4) {
+          error = new Error("A valid Polygon should have a minimum set of 4 points");
+          return true;
+        }
+        _.each(_.initial(a), function (pl) {
+          poly.push([parseFloat(pl[1]), parseFloat(pl[0])]);
+        });
+        array.push(poly);
+        return false;
+      });
+      // return?
+    });
     break;
   default:
     error = new Error("unknown GeoJSON type specified");
