@@ -1,3 +1,10 @@
+0.2.0 / 2015-06-02
+==================
+
+  * Add `isGeoJSON()` check
+  * Add support for all GeoJSON types
+  * Add unit tests (coverage incomplete)
+
 0.1.7 / 2014-06-13
 ==================
 
