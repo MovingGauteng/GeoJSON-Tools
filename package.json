@@ -1,6 +1,6 @@
 {
   "name": "geojson-tools",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Tools for working with location data, using the GeoJSON specification",
   "main": "index.js",
   "scripts": {
