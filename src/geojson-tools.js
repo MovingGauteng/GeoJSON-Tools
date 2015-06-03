@@ -9,6 +9,73 @@
  */
 var _ = require('underscore');
 
+
+/**
+ * returns an object with result, and error message if provided
+ *
+ * @param {Boolean} error, can also take any JavaScript object
+ * @param {Boolean} indicator of whether to return error message
+ * @param {Object} object containing error message
+ * @returns {Object} result and error message
+ */
+var _returnError = function (err, returnError, options) {
+  if (!returnError) {
+    return err;
+  }
+  if (!options) {
+    options = {};
+  }
+  if (options.message) {
+    return {result: err, message: options.message};
+  }
+  return {result: err};
+};
+
+var _isPosition = function (coordinates, returnError) {
+  if (coordinates.length < 2 || !_.isNumber(coordinates[0]) || !_.isNumber(coordinates[1])) {
+    return _returnError(false, returnError, {message: 'invalid coordinates for GeoJSON Point'});
+  }
+  // Position is valid
+  return true;
+};
+
+var _isLinearRing = function (arr, returnError) {
+  var invalid = _.find(arr, function (coordinates) {
+    if (coordinates.length < 4) {
+      return _returnError(false, returnError, {message: 'expecting coordinates of GeoJSON object to have at least 4 positions'});
+    }
+    if (!_.isEqual(_.last(coordinates), coordinates[0])) {
+      return _returnError(false, returnError, {message: 'the first and last positions of GeoJSON LinearRing are not the same'});
+    }
+    return _isPosition(coordinates);
+  });
+  if (invalid) {
+    return _returnError(false, returnError, {message: ''});
+  }
+  return true;
+};
+
+var _isLineString = function (coordinates, returnError) {
+  var invalid = _.find(coordinates, function (xy) {
+    return !_isPosition(xy);
+  });
+  if (invalid) {
+    return _returnError(false, returnError, {message: 'one of the coordinates of the LineString are invalid'});
+  }
+  // GeoJSON LineString coordinates are valid
+  return true;
+};
+
+/**
+ * converts degrees to radians
+ *
+ * @param {Number} coordinates in degrees
+ * @returns {Number} coordinates in radians
+ */
+var _toRadian = function (degree) {
+  return degree * Math.PI / 180;
+};
+
 /**
  *
  * @param {Array} array
@@ -148,7 +215,10 @@ var toGeoJSON = function (array, type) {
  */
 var toArray = function (geoobj) {
   var array,
-    error;
+    error,
+    poly,
+    multiline,
+    line;
   if (!geoobj.type || !geoobj.coordinates) {
     return new Error("The object specified is not a a valid GeoJSON object");
   }
@@ -159,7 +229,7 @@ var toArray = function (geoobj) {
   case 'linestring':
     // check if it is a valid line
     array = geoobj.coordinates;
-    var line = [];
+    line = [];
     _.find(array, function (ln) {
       if (typeof ln === 'object') {
         line.push([parseFloat(ln[1]), parseFloat(ln[0])]);
@@ -173,7 +243,6 @@ var toArray = function (geoobj) {
     }
     break;
   case 'polygon':
-    var poly;
     array = [];
     // check if valid object
     _.find(geoobj.coordinates, function (a) {
@@ -201,7 +270,6 @@ var toArray = function (geoobj) {
     });
     break;
   case 'multipoint':
-    var mpoint;
     array = [];
     // REVIEW should we check if valid object? Or can we do it at the top?
     _.each(geoobj.coordinates, function (pt) {
@@ -209,7 +277,6 @@ var toArray = function (geoobj) {
     });
     break;
   case 'multilinestring':
-    var multiline;
     array = [];
     // check if valid object
     _.find(geoobj.coordinates, function (a) {
@@ -226,7 +293,6 @@ var toArray = function (geoobj) {
     });
     break;
   case 'multipolygon':
-    var poly;
     array = [];
     _.each(geoobj.coordinates, function (coord) {
       _.find(coord, function (a) {
@@ -524,7 +590,7 @@ var isGeoJSON = function (obj, returnError) {
     if (!_.isArray(obj.geometries)) {
       return _returnError(false, returnError, {message: 'expected GeoJSON GeometryCollection\'s geometries to be an array'});
     }
-    var invalid = _.find(obj.geometries, function (geometry) {
+    invalid = _.find(obj.geometries, function (geometry) {
       return !isGeoJSON(geometry);
     });
     if (invalid) {
@@ -533,72 +599,6 @@ var isGeoJSON = function (obj, returnError) {
     // GeoJSON GeometryCollection is valid
     return true;
   }
-};
-
-var _isLinearRing = function (arr, returnError) {
-  var invalid = _.find(arr, function (coordinates) {
-    if (coordinates.length < 4) {
-      return _returnError(false, returnError, {message: 'expecting coordinates of GeoJSON object to have at least 4 positions'});
-    }
-    if (!_.isEqual(_.last(coordinates), coordinates[0])) {
-      return _returnError(false, returnError, {message: 'the first and last positions of GeoJSON LinearRing are not the same'});
-    }
-    return _isPosition(coordinates);
-  });
-  if (invalid) {
-    return _returnError(false, returnError, {message: ''})
-  }
-  return true;
-};
-
-var _isPosition = function (coordinates, returnError) {
-  if (coordinates.length < 2 || !_.isNumber(coordinates[0]) || !_.isNumber(coordinates[1])) {
-    return _returnError(false, returnError, {message: 'invalid coordinates for GeoJSON Point'});
-  }
-  // Position is valid
-  return true;
-};
-
-var _isLineString = function (coordinates, returnError) {
-  var invalid = _.find(coordinates, function (xy) {
-    return !_isPosition(xy);
-  });
-  if (invalid) {
-    return _returnError(false, returnError, {message: 'one of the coordinates of the LineString are invalid'});
-  }
-  // GeoJSON LineString coordinates are valid
-  return true;
-};
-
-/**
- * converts degrees to radians
- *
- * @param {Number} coordinates in degrees
- * @returns {Number} coordinates in radians
- */
-var _toRadian = function (degree) {
-  return decimal * Math.PI / 180;
-}
-
-/**
- * returns an object with result, and error message if provided
- *
- * @param {Boolean} error, can also take any JavaScript object
- * @param {Boolean} indicator of whether to return error message
- * @param {Object} object containing error message
- * @returns {Object} result and error message
- */
-var _returnError = function (err, returnError, options) {
-  if (!returnError) {
-    return err;
-  }
-  if (!options) {
-    options = {};
-  }
-  if (options.message) {
-    return {result: err, message: options.message};
-  }
-  return {result: err};
 };
 
 /*
