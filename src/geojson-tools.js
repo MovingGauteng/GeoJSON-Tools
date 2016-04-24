@@ -405,7 +405,7 @@ var complexify = function (linestring, distance) {
     result = [],
     points = [],
     d;
-  cur = linestring.shift();
+  cur = linestring[0];
   result.push(cur);
   points.push(cur);
   // variables used in the loop
