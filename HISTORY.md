@@ -1,3 +1,8 @@
+0.2.2 / 2016-04-24
+==================
+
+  * Fixed an instance where the first set of coordinates in a `LineString` weren't returned on `complexify()`. Ref #9
+
 0.2.1 / 2015-06-03
 ==================
 
